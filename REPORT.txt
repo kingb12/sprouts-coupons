@@ -1,0 +1,121 @@
+SPROUTS COUPONS - STATUS REPORT
+================================
+Generated: 2026-01-31
+
+SUMMARY
+-------
+All core functionality is working. 10/10 integration tests pass.
+The clip_coupon method remains stubbed as requested.
+
+WHAT'S WORKING
+--------------
+
+1. HEADLESS LOGIN (session.py)
+   Status: WORKING
+   - Firefox browser launches in headless mode
+   - Cookie consent dialog dismissed ("REJECT COOKIES")
+   - Shop mode confirmation dismissed ("Confirm")
+   - Sign in flow completes via account.sprouts.com
+   - Session cookies extracted for API use
+   - Tested: test_headless_login_succeeds, test_session_has_required_cookies
+
+2. COUPON API (client.py)
+   Status: WORKING
+   - GraphQL API at shop.sprouts.com/graphql responds with 200
+   - Authenticated requests return full offer data
+   - Offers correctly parsed into Offer objects
+   - Currently seeing 32 offers in your account
+   - Tested: test_api_with_auth_cookies_returns_offers, test_offers_have_expected_fields
+
+3. API AUTHENTICATION REQUIRED
+   Status: VERIFIED
+   - Tested API without cookies - behaves differently than authenticated
+   - Authentication cookies required for user-specific offers
+   - Tested: test_api_without_auth_cookies_fails
+
+4. OFFER LOGGING (main.py)
+   Status: WORKING
+   - Each offer logged with INFO level
+   - Format: [CLIPPED/AVAILABLE] Name - Description (expires: date)
+   - Summary logged at end (32 clipped, 0 available)
+
+5. CLIP COUPON STUB (client.py)
+   Status: STUBBED (as requested)
+   - Method exists and accepts Offer + SessionInfo
+   - Returns True and logs "[STUB] Clipping coupon: {name}"
+   - Ready for actual implementation when needed
+   - Tested: test_clip_coupon_stub_returns_true
+
+6. EMAIL REPORTS (email.py)
+   Status: WORKING
+   - Uses sendmail at /usr/sbin/sendmail
+   - Sender: kingb12automation@gmail.com
+   - Recipient: kingbrendan94@gmail.com
+   - Subject: "Sprouts coupons: {count} clipped"
+   - Report includes offer summary and clipped coupon list
+   - Real email sent successfully at 17:51:17
+   - Tested: test_send_email_dry_run, test_send_real_email
+
+7. USER INFO (session.py)
+   Status: PARTIALLY WORKING
+   - USER_INFO.txt file created successfully
+   - User name extraction returns "Unknown" (selectors need tuning)
+   - Store name extraction returns "Unknown" (selectors need tuning)
+   - Shop ID correctly extracted: 473512
+   - Tested: test_write_user_info
+
+8. FULL FLOW (main.py)
+   Status: WORKING
+   - CLI entry point: `sprouts-coupons`
+   - Options: --headless, --no-headless, --dry-run, --skip-clip, -v
+   - Complete flow: login -> write user info -> fetch offers -> log -> clip -> email
+   - Tested: test_full_flow
+
+
+WHAT NEEDS WORK
+---------------
+
+1. USER NAME EXTRACTION
+   Issue: Returns "Unknown" instead of "Brendan"
+   Location: session.py:_extract_user_name()
+   Notes: The selectors for finding user greeting on page need updating.
+          Low priority - doesn't affect coupon functionality.
+
+2. STORE NAME EXTRACTION
+   Issue: Returns "Unknown"
+   Location: session.py:_extract_store_name()
+   Notes: Similar selector issue. Low priority.
+
+3. CLIP COUPON IMPLEMENTATION
+   Issue: Currently stubbed, doesn't actually clip
+   Location: client.py:clip_coupon()
+   Notes: Needs GraphQL mutation for actual clipping. All your coupons
+          are already clipped (32 clipped, 0 available), so this is fine
+          for now.
+
+
+TEST RESULTS
+------------
+$ pytest src/sprouts_coupons/test_integration.py -v
+
+TestLogin::test_headless_login_succeeds .............. PASSED
+TestLogin::test_session_has_required_cookies ......... PASSED
+TestLogin::test_write_user_info ...................... PASSED
+TestCouponAPI::test_api_with_auth_cookies_returns_offers ... PASSED
+TestCouponAPI::test_api_without_auth_cookies_fails ... PASSED
+TestCouponAPI::test_offers_have_expected_fields ...... PASSED
+TestClipCoupon::test_clip_coupon_stub_returns_true ... PASSED
+TestEmailReport::test_send_email_dry_run ............. PASSED
+TestEmailReport::test_send_real_email ................ PASSED
+TestFullFlow::test_full_flow ......................... PASSED
+
+============================= 10 passed in 41.12s ==============================
+
+
+RECOMMENDATIONS
+---------------
+1. Run daily with: `sprouts-coupons --headless`
+2. For testing: `sprouts-coupons --dry-run` (no email sent)
+3. To just view offers: `sprouts-coupons --skip-clip --dry-run`
+4. If clip implementation needed, inspect network traffic when manually
+   clipping a coupon to find the GraphQL mutation

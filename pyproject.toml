@@ -18,6 +18,9 @@ classifiers = [
 ]
 dependencies = [
     "dacite~=1.8.1",
+    "playwright>=1.40.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -29,11 +32,14 @@ dev = [
     "pre-commit>=3.5.0",
 ]
 
+[project.scripts]
+sprouts-coupons = "sprouts_coupons.main:main"
+
 [project.urls]
 Homepage = "https://github.com/kingb12/sprouts-coupons"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/sprouts-coupons"]
+packages = ["src/sprouts_coupons"]
 
 [tool.pytest.ini_options]
 testpaths = ["src"]
@@ -74,4 +80,4 @@ select = [
 ignore = []
 
 [tool.ruff.lint.isort]
-known-first-party = ["sprouts-coupons"]
+known-first-party = ["sprouts_coupons"]
