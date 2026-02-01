@@ -7,8 +7,6 @@ class SessionInfo:
 
     cookies: dict[str, str]
     shop_id: str
-    user_name: str
-    store_name: str
 
 
 @dataclass

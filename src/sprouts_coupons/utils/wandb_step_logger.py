@@ -9,7 +9,7 @@ def mark_run_complete(run: Any | None = None):
     to `wandb` and passes no `run` argument
     """
     try:
-        import wandb  # type: ignore
+        import wandb
 
         if not run:
             run = wandb.Api().run(f"{wandb.run.entity}/{wandb.run.project}/{wandb.run.id}")

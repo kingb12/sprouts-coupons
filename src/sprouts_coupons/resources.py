@@ -2,7 +2,7 @@ import json
 import pkgutil
 from typing import Any
 
-# NOTE: I think this only works well if this file remains in the top-level src/sprouts-coupons directory
+# NOTE: I think this only works well if this file remains in the top-level src/sprouts_coupons directory
 
 
 def read_resource(relative_path: str) -> str:

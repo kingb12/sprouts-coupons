@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from sprouts-coupons.utils.general import read_json
+from sprouts_coupons.utils.general import read_json
 
 
 @pytest.fixture

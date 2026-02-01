@@ -9,6 +9,7 @@ from .models import Offer, SessionInfo
 logger = logging.getLogger(__name__)
 
 GRAPHQL_ENDPOINT = "https://shop.sprouts.com/graphql"
+# Persisted query hash for FindOffersForUserV2 - obtained from browser network inspection
 OFFERS_QUERY_HASH = "f26ac1f27a58e191306d8fa6e15d4edd0492a625f0a8bd254310454a82596a8e"
 
 
@@ -18,9 +19,13 @@ class SproutsClient:
     def __init__(self, session: SessionInfo):
         self.session = session
         self._requests = requests.Session()
+        # Headers required by Sprouts API - x-client-identifier is checked server-side
         self._requests.headers.update(
             {
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+                "User-Agent": (
+                    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
+                ),
                 "Content-Type": "application/json",
                 "Accept": "*/*",
                 "x-client-identifier": "web",
@@ -34,6 +39,7 @@ class SproutsClient:
         """Fetch all available coupon offers."""
         variables = {
             "shopId": self.session.shop_id,
+            # ic_inmar = Inmar digital coupons - Inmar is the coupon/rebate provider for Sprouts
             "offerSources": ["ic_inmar"],
             "limit": limit,
             "filtering": [],

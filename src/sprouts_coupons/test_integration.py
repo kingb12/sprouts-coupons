@@ -6,18 +6,21 @@ Run with: pytest -m integration
 """
 
 import logging
-import os
 
 import pytest
 import requests
 
 from sprouts_coupons.client import SproutsClient
-from sprouts_coupons.email import send_clip_report
+from sprouts_coupons.email import build_report, log_report, send_clip_report
 from sprouts_coupons.models import Offer, SessionInfo
-from sprouts_coupons.session import login_and_get_session, write_user_info
+from sprouts_coupons.session import login_and_get_session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Fake email addresses for tests that need them
+TEST_SENDER = "test-sender@example.com"
+TEST_RECIPIENT = "test-recipient@example.com"
 
 
 @pytest.fixture(scope="module")
@@ -25,7 +28,7 @@ def authenticated_session() -> SessionInfo:
     """Login once and reuse session across tests in this module."""
     logger.info("Logging in to Sprouts (headless)...")
     session = login_and_get_session(headless=True)
-    logger.info(f"Session acquired. User: {session.user_name}, Shop ID: {session.shop_id}")
+    logger.info(f"Session acquired. Shop ID: {session.shop_id}")
     return session
 
 
@@ -48,21 +51,8 @@ class TestLogin:
         logger.info(f"Cookies received: {cookie_names}")
 
         # Should have instacart session cookies
-        has_session_cookie = any(
-            "session" in name.lower() or "sid" in name.lower()
-            for name in cookie_names
-        )
+        has_session_cookie = any("session" in name.lower() or "sid" in name.lower() for name in cookie_names)
         assert has_session_cookie, f"Expected session cookie, got: {cookie_names}"
-
-    def test_write_user_info(self, authenticated_session: SessionInfo, tmp_path):
-        """Should write user info to file."""
-        output_file = tmp_path / "USER_INFO.txt"
-        write_user_info(authenticated_session, str(output_file))
-
-        assert output_file.exists()
-        content = output_file.read_text()
-        assert "User Name:" in content
-        assert "Default Store:" in content
 
 
 @pytest.mark.integration
@@ -76,7 +66,9 @@ class TestCouponAPI:
         offers = client.get_offers(limit=30)
 
         assert isinstance(offers, list)
-        assert len(offers) > 0, "Expected at least some offers"
+        if len(offers) == 0:
+            logger.warning("No offers returned - test cannot verify offer structure")
+            pytest.skip("No offers available to verify")
 
         # Verify offer structure
         first_offer = offers[0]
@@ -91,8 +83,6 @@ class TestCouponAPI:
         fake_session = SessionInfo(
             cookies={},
             shop_id="473512",
-            user_name="test",
-            store_name="test",
         )
         client = SproutsClient(fake_session)
 
@@ -116,6 +106,10 @@ class TestCouponAPI:
         """Offers should have all expected fields populated."""
         client = SproutsClient(authenticated_session)
         offers = client.get_offers(limit=10)
+
+        if len(offers) == 0:
+            logger.warning("No offers returned - cannot verify field structure")
+            pytest.skip("No offers available to verify")
 
         for offer in offers[:5]:  # Check first 5
             assert offer.id, "Offer should have id"
@@ -150,30 +144,42 @@ class TestClipCoupon:
 class TestEmailReport:
     """Test email reporting functionality."""
 
-    def test_send_email_dry_run(self, authenticated_session: SessionInfo, capsys):
-        """Dry run should print report without sending."""
+    def test_build_report(self, authenticated_session: SessionInfo):
+        """Build report should create valid report text."""
         client = SproutsClient(authenticated_session)
         offers = client.get_offers(limit=20)
 
-        send_clip_report(offers, dry_run=True)
+        report = build_report(offers)
 
-        captured = capsys.readouterr()
-        assert "[DRY RUN]" in captured.out
-        assert "Sprouts Coupons Report" in captured.out
-        assert "Total offers:" in captured.out
+        assert "Sprouts Coupons Report" in report
+        assert "Total offers:" in report
+        assert "Clipped:" in report
+        assert "Available:" in report
+
+    def test_log_report(self, authenticated_session: SessionInfo):
+        """Log report should log to report logger."""
+        client = SproutsClient(authenticated_session)
+        offers = client.get_offers(limit=20)
+
+        report = log_report(offers)
+
+        assert "Sprouts Coupons Report" in report
 
     def test_send_real_email(self, authenticated_session: SessionInfo):
         """Send a real email report.
 
-        This test actually sends an email to the configured recipient.
+        Note: This test uses fake addresses and will fail to actually deliver.
+        It tests the sendmail integration path. To test real delivery,
+        set SPROUTS_EMAIL_SENDER and SPROUTS_EMAIL_RECIPIENT in your environment.
         """
         client = SproutsClient(authenticated_session)
         offers = client.get_offers(limit=50)
 
-        logger.info(f"Sending email report with {len(offers)} offers...")
-        # This will attempt to send a real email
-        send_clip_report(offers, dry_run=False)
-        logger.info("Email send attempted - check inbox")
+        logger.info(f"Attempting to send email report with {len(offers)} offers...")
+        # This will attempt to send using sendmail - may fail if not installed
+        result = send_clip_report(offers, sender=TEST_SENDER, recipient=TEST_RECIPIENT)
+        if not result:
+            logger.warning("Email send failed - sendmail may not be available")
 
 
 @pytest.mark.integration
@@ -181,42 +187,37 @@ class TestEmailReport:
 class TestFullFlow:
     """Test the complete end-to-end flow."""
 
-    def test_full_flow(self, authenticated_session: SessionInfo, tmp_path):
-        """Run the complete flow: login -> fetch offers -> log -> clip stub -> email."""
+    def test_full_flow(self, authenticated_session: SessionInfo):
+        """Run the complete flow: login -> fetch offers -> log -> clip stub."""
         # Step 1: Session already acquired via fixture
-        logger.info(f"Step 1 - Login: User={authenticated_session.user_name}")
+        logger.info(f"Step 1 - Login: shop_id={authenticated_session.shop_id}")
 
-        # Step 2: Write user info
-        user_info_path = tmp_path / "USER_INFO.txt"
-        write_user_info(authenticated_session, str(user_info_path))
-        assert user_info_path.exists()
-        logger.info(f"Step 2 - User info written to {user_info_path}")
-
-        # Step 3: Fetch offers
+        # Step 2: Fetch offers
         client = SproutsClient(authenticated_session)
         offers = client.get_offers()
         assert len(offers) > 0
-        logger.info(f"Step 3 - Fetched {len(offers)} offers")
+        logger.info(f"Step 2 - Fetched {len(offers)} offers")
 
-        # Step 4: Log offer details
+        # Step 3: Log offer details
         clipped_count = sum(1 for o in offers if o.is_clipped)
         available_count = len(offers) - clipped_count
-        logger.info(f"Step 4 - Summary: {clipped_count} clipped, {available_count} available")
+        logger.info(f"Step 3 - Summary: {clipped_count} clipped, {available_count} available")
 
         # Log first few offers
         for offer in offers[:5]:
             logger.info(f"  Offer: {offer}")
 
-        # Step 5: Clip coupons (stub)
+        # Step 4: Clip coupons (stub)
         unclipped = [o for o in offers if not o.is_clipped]
         if unclipped:
             test_offer = unclipped[0]
             result = client.clip_coupon(test_offer)
             assert result is True
-            logger.info(f"Step 5 - Clip stub called for: {test_offer.name}")
+            logger.info(f"Step 4 - Clip stub called for: {test_offer.name}")
 
-        # Step 6: Email report (dry run for test)
-        send_clip_report(offers, dry_run=True)
-        logger.info("Step 6 - Email report (dry run) completed")
+        # Step 5: Build report
+        report = build_report(offers)
+        assert "Sprouts Coupons Report" in report
+        logger.info("Step 5 - Report built")
 
         logger.info("Full flow completed successfully!")

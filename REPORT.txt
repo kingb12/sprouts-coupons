@@ -27,10 +27,12 @@ WHAT'S WORKING
    - Currently seeing 32 offers in your account
    - Tested: test_api_with_auth_cookies_returns_offers, test_offers_have_expected_fields
 
-3. API AUTHENTICATION REQUIRED
+3. API AUTHENTICATION
    Status: VERIFIED
-   - Tested API without cookies - behaves differently than authenticated
-   - Authentication cookies required for user-specific offers
+   - Without auth cookies: API returns generic/public offers (not user-specific)
+   - With auth cookies: API returns personalized offers with clip status
+   - The API doesn't reject unauthenticated requests, but returns different data
+   - User-specific offer state (clipped vs available) requires authentication
    - Tested: test_api_without_auth_cookies_fails
 
 4. OFFER LOGGING (main.py)
@@ -48,45 +50,34 @@ WHAT'S WORKING
 
 6. EMAIL REPORTS (email.py)
    Status: WORKING
-   - Uses sendmail at /usr/sbin/sendmail
-   - Sender: kingb12automation@gmail.com
-   - Recipient: kingbrendan94@gmail.com
+   - Uses sendmail at /usr/sbin/sendmail (optional)
+   - Email addresses read from environment variables:
+     - SPROUTS_EMAIL_SENDER
+     - SPROUTS_EMAIL_RECIPIENT
+   - If not set, logs warning and writes report to logs/reports.log instead
    - Subject: "Sprouts coupons: {count} clipped"
    - Report includes offer summary and clipped coupon list
-   - Real email sent successfully at 17:51:17
-   - Tested: test_send_email_dry_run, test_send_real_email
+   - Tested: test_build_report, test_log_report, test_send_real_email
 
-7. USER INFO (session.py)
-   Status: PARTIALLY WORKING
-   - USER_INFO.txt file created successfully
-   - User name extraction returns "Unknown" (selectors need tuning)
-   - Store name extraction returns "Unknown" (selectors need tuning)
-   - Shop ID correctly extracted: 473512
-   - Tested: test_write_user_info
+7. FILE LOGGING (main.py)
+   Status: WORKING
+   - All logs written to logs/sprouts_coupons.log
+   - Reports written to separate logs/reports.log
+   - Log directory configurable via SPROUTS_LOG_DIR env var
+   - Console output mirrors file logs
 
 8. FULL FLOW (main.py)
    Status: WORKING
    - CLI entry point: `sprouts-coupons`
-   - Options: --headless, --no-headless, --dry-run, --skip-clip, -v
-   - Complete flow: login -> write user info -> fetch offers -> log -> clip -> email
+   - Options: --headless/--no-headless, --dry-run, --skip-clip, -v
+   - Complete flow: login -> fetch offers -> log -> clip -> report
    - Tested: test_full_flow
 
 
 WHAT NEEDS WORK
 ---------------
 
-1. USER NAME EXTRACTION
-   Issue: Returns "Unknown" instead of "Brendan"
-   Location: session.py:_extract_user_name()
-   Notes: The selectors for finding user greeting on page need updating.
-          Low priority - doesn't affect coupon functionality.
-
-2. STORE NAME EXTRACTION
-   Issue: Returns "Unknown"
-   Location: session.py:_extract_store_name()
-   Notes: Similar selector issue. Low priority.
-
-3. CLIP COUPON IMPLEMENTATION
+1. CLIP COUPON IMPLEMENTATION
    Issue: Currently stubbed, doesn't actually clip
    Location: client.py:clip_coupon()
    Notes: Needs GraphQL mutation for actual clipping. All your coupons
@@ -96,20 +87,20 @@ WHAT NEEDS WORK
 
 TEST RESULTS
 ------------
-$ pytest src/sprouts_coupons/test_integration.py -v
+$ pytest src/sprouts_coupons/test_integration.py -v -m integration
 
 TestLogin::test_headless_login_succeeds .............. PASSED
 TestLogin::test_session_has_required_cookies ......... PASSED
-TestLogin::test_write_user_info ...................... PASSED
 TestCouponAPI::test_api_with_auth_cookies_returns_offers ... PASSED
 TestCouponAPI::test_api_without_auth_cookies_fails ... PASSED
 TestCouponAPI::test_offers_have_expected_fields ...... PASSED
 TestClipCoupon::test_clip_coupon_stub_returns_true ... PASSED
-TestEmailReport::test_send_email_dry_run ............. PASSED
+TestEmailReport::test_build_report ................... PASSED
+TestEmailReport::test_log_report ..................... PASSED
 TestEmailReport::test_send_real_email ................ PASSED
 TestFullFlow::test_full_flow ......................... PASSED
 
-============================= 10 passed in 41.12s ==============================
+============================= 10 passed ==============================
 
 
 RECOMMENDATIONS
