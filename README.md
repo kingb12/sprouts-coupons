@@ -25,7 +25,96 @@ git clone https://github.com/kingb12/sprouts-coupons.git
 cd sprouts-coupons
 uv venv
 uv pip install -e .
-```k
+```
+
+### Install Playwright browsers
+
+After installation, install the required browser:
+
+```console
+playwright install firefox
+```
+
+## Docker Usage
+
+### Build and run with Docker
+
+Build the Docker image:
+
+```console
+docker build -t sprouts-coupons .
+```
+
+Run the container:
+
+```console
+docker run --rm \
+  -e SPROUTS_USERNAME=your@email.com \
+  -e SPROUTS_PASSWORD=yourpassword \
+  -v $(pwd)/logs:/app/logs \
+  sprouts-coupons
+```
+
+### Using docker-compose
+
+Create a `.env` file with your credentials:
+
+```env
+SPROUTS_USERNAME=your@email.com
+SPROUTS_PASSWORD=yourpassword
+
+# For email notifications in Docker, you need SMTP settings
+# Use a Gmail App Password: https://myaccount.google.com/apppasswords
+SPROUTS_EMAIL_SENDER=your@gmail.com
+SPROUTS_EMAIL_RECIPIENT=your.email@example.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your@gmail.com
+SMTP_PASSWORD=your-app-password-here
+```
+
+**Important for Gmail:** You must use an [App Password](https://myaccount.google.com/apppasswords), not your regular Gmail password. This is a 16-character password that Google generates specifically for applications.
+
+Then run:
+
+```console
+docker-compose up --build
+```
+
+The Dockerfile uses `playwright install --with-deps firefox` which installs both the Firefox browser AND all the required system libraries. For email, it uses `msmtp` (a lightweight SMTP client) configured automatically from your environment variables.
+
+**Cron scheduling:** The container runs a cron daemon and executes the script according to the `CRON_SCHEDULE` environment variable (default: daily at 2 AM UTC).
+
+```env
+# Run daily at 12 AM (default)
+CRON_SCHEDULE=0 0 * * *
+
+# Or run every 6 hours:
+# CRON_SCHEDULE=0 */6 * * *
+
+# Or weekly on Sunday at midnight:
+# CRON_SCHEDULE=0 0 * * 0
+```
+
+Start the container in detached mode:
+
+```console
+docker-compose up -d
+```
+
+View logs:
+
+```console
+docker-compose logs -f
+# Or check the cron-specific log:
+tail -f logs/cron.log
+```
+
+Stop the container:
+
+```console
+docker-compose down
+```
 
 ## Usage
 

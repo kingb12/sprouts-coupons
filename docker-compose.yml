@@ -1,0 +1,16 @@
+services:
+  sprouts-coupons:
+    container_name: sprouts-coupons
+    build: .
+    env_file:
+      - .env
+    environment:
+      # Override log directory for container
+      - SPROUTS_LOG_DIR=/app/logs
+      # Cron schedule (default: daily at 4 PM Pacific = midnight UTC)
+      - CRON_SCHEDULE=${CRON_SCHEDULE:-0 0 * * *}
+    volumes:
+      # Persist logs
+      - ./logs:/app/logs:rw
+    # Keep container running
+    restart: unless-stopped
