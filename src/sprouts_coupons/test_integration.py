@@ -37,13 +37,13 @@ def authenticated_session() -> SessionInfo:
 class TestLogin:
     """Test login functionality."""
 
-    def test_headless_login_succeeds(self, authenticated_session: SessionInfo):
+    def test_headless_login_succeeds(self, authenticated_session: SessionInfo) -> None:
         """Login should complete and return session info."""
         assert authenticated_session is not None
         assert authenticated_session.cookies, "Expected cookies to be set"
         assert authenticated_session.shop_id, "Expected shop_id to be set"
 
-    def test_session_has_required_cookies(self, authenticated_session: SessionInfo):
+    def test_session_has_required_cookies(self, authenticated_session: SessionInfo) -> None:
         """Session should contain authentication cookies."""
         cookies = authenticated_session.cookies
         # Check for key cookies that indicate successful login
@@ -60,7 +60,7 @@ class TestLogin:
 class TestCouponAPI:
     """Test the coupon GraphQL API."""
 
-    def test_api_with_auth_cookies_returns_offers(self, authenticated_session: SessionInfo):
+    def test_api_with_auth_cookies_returns_offers(self, authenticated_session: SessionInfo) -> None:
         """API call with valid session should return offers."""
         client = SproutsClient(authenticated_session)
         offers = client.get_offers(limit=30)
@@ -77,7 +77,7 @@ class TestCouponAPI:
         assert first_offer.name
         logger.info(f"Retrieved {len(offers)} offers. First: {first_offer.name}")
 
-    def test_api_without_auth_cookies_fails(self):
+    def test_api_without_auth_cookies_fails(self) -> None:
         """API call without authentication should fail or return empty."""
         # Create a session with no cookies
         fake_session = SessionInfo(
@@ -102,7 +102,7 @@ class TestCouponAPI:
             logger.info(f"API correctly rejected unauthenticated request: {e}")
             assert e.response.status_code in [401, 403, 400]
 
-    def test_offers_have_expected_fields(self, authenticated_session: SessionInfo):
+    def test_offers_have_expected_fields(self, authenticated_session: SessionInfo) -> None:
         """Offers should have all expected fields populated."""
         client = SproutsClient(authenticated_session)
         offers = client.get_offers(limit=10)
@@ -126,7 +126,7 @@ class TestCouponAPI:
 class TestClipCoupon:
     """Test coupon clipping functionality."""
 
-    def test_clip_coupon_stub_returns_true(self, authenticated_session: SessionInfo):
+    def test_clip_coupon_stub_returns_true(self, authenticated_session: SessionInfo) -> None:
         """Stub clip_coupon should return True."""
         client = SproutsClient(authenticated_session)
         offers = client.get_offers(limit=5)
@@ -144,7 +144,7 @@ class TestClipCoupon:
 class TestEmailReport:
     """Test email reporting functionality."""
 
-    def test_build_report(self, authenticated_session: SessionInfo):
+    def test_build_report(self, authenticated_session: SessionInfo) -> None:
         """Build report should create valid report text."""
         client = SproutsClient(authenticated_session)
         offers = client.get_offers(limit=20)
@@ -156,7 +156,7 @@ class TestEmailReport:
         assert "Clipped:" in report
         assert "Available:" in report
 
-    def test_log_report(self, authenticated_session: SessionInfo):
+    def test_log_report(self, authenticated_session: SessionInfo) -> None:
         """Log report should log to report logger."""
         client = SproutsClient(authenticated_session)
         offers = client.get_offers(limit=20)
@@ -165,7 +165,7 @@ class TestEmailReport:
 
         assert "Sprouts Coupons Report" in report
 
-    def test_send_real_email(self, authenticated_session: SessionInfo):
+    def test_send_real_email(self, authenticated_session: SessionInfo) -> None:
         """Send a real email report.
 
         Note: This test uses fake addresses and will fail to actually deliver.
@@ -187,7 +187,7 @@ class TestEmailReport:
 class TestFullFlow:
     """Test the complete end-to-end flow."""
 
-    def test_full_flow(self, authenticated_session: SessionInfo):
+    def test_full_flow(self, authenticated_session: SessionInfo) -> None:
         """Run the complete flow: login -> fetch offers -> log -> clip stub."""
         # Step 1: Session already acquired via fixture
         logger.info(f"Step 1 - Login: shop_id={authenticated_session.shop_id}")

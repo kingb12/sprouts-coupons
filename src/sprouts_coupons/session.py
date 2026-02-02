@@ -97,7 +97,7 @@ def login_and_get_session(
         return SessionInfo(cookies=cookies, shop_id=shop_id)
 
 
-def _extract_shop_id(page) -> str:
+def _extract_shop_id(page) -> str:  # type: ignore
     """Extract shop ID from cookies or URL."""
     # Check cookies first
     cookies = page.context.cookies()
