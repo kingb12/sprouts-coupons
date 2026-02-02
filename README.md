@@ -10,7 +10,11 @@ and automatically clip all available digital coupons so they don't have to be se
 
 ## Installation
 
-### Prerequisites
+Two supported methods:
+- Docker
+- From Source
+
+### Prerequisites (From Source)
 
 * Python 3.12 or higher
 * Playwright browser (installed automatically)
@@ -37,25 +41,9 @@ playwright install firefox
 
 ## Docker Usage
 
-### Build and run with Docker
+Prequisites: `docker`, `docker compose`
 
-Build the Docker image:
-
-```console
-docker build -t sprouts-coupons .
-```
-
-Run the container:
-
-```console
-docker run --rm \
-  -e SPROUTS_USERNAME=your@email.com \
-  -e SPROUTS_PASSWORD=yourpassword \
-  -v $(pwd)/logs:/app/logs \
-  sprouts-coupons
-```
-
-### Using docker-compose
+### Using `docker compose`
 
 Create a `.env` file with your credentials:
 
@@ -78,12 +66,12 @@ SMTP_PASSWORD=your-app-password-here
 Then run:
 
 ```console
-docker-compose up --build
+docker compose up --build -d
 ```
 
 The Dockerfile uses `playwright install --with-deps firefox` which installs both the Firefox browser AND all the required system libraries. For email, it uses `msmtp` (a lightweight SMTP client) configured automatically from your environment variables.
 
-**Cron scheduling:** The container runs a cron daemon and executes the script according to the `CRON_SCHEDULE` environment variable (default: daily at 2 AM UTC).
+**Cron scheduling:** The container runs a cron daemon and executes the script according to the `CRON_SCHEDULE` environment variable (default: daily at 12 AM UTC).
 
 ```env
 # Run daily at 12 AM (default)
