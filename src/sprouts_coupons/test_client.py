@@ -117,9 +117,7 @@ class TestGraphQLGet:
     def test_graphql_get_raises_on_graphql_errors(self, client: SproutsClient) -> None:
         """_graphql_get should raise on GraphQL errors."""
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "errors": [{"message": "Invalid query"}]
-        }
+        mock_response.json.return_value = {"errors": [{"message": "Invalid query"}]}
         mock_response.raise_for_status = Mock()
 
         with patch.object(client._requests, "get", return_value=mock_response):
@@ -151,13 +149,11 @@ class TestParseSingleOffer:
             "offerRequestKey": "req_key",
             "viewSection": {
                 "nameString": "Save on Apples",
-                "detailsFormattedAttributesString": {
-                    "sections": [{"text": "Get $2 off apples"}]
-                },
+                "detailsFormattedAttributesString": {"sections": [{"text": "Get $2 off apples"}]},
                 "endsOnString": "2026-03-01",
                 "clippedVariant": "false",
-                "offerImage": {"url": "https://example.com/apple.jpg"}
-            }
+                "offerImage": {"url": "https://example.com/apple.jpg"},
+            },
         }
 
         offer = client._parse_single_offer(raw_offer)
@@ -182,8 +178,8 @@ class TestParseSingleOffer:
                 "nameString": "Clipped Offer",
                 "clippedVariant": "true",
                 "endsOnString": "2026-03-01",
-                "detailsFormattedAttributesString": {"sections": [{"text": "desc"}]}
-            }
+                "detailsFormattedAttributesString": {"sections": [{"text": "desc"}]},
+            },
         }
 
         offer = client._parse_single_offer(raw_offer)
@@ -202,8 +198,8 @@ class TestParseSingleOffer:
                 "nameString": "No Image Offer",
                 "endsOnString": "2026-03-01",
                 "clippedVariant": "false",
-                "detailsFormattedAttributesString": {"sections": [{"text": "desc"}]}
-            }
+                "detailsFormattedAttributesString": {"sections": [{"text": "desc"}]},
+            },
         }
 
         offer = client._parse_single_offer(raw_offer)
@@ -222,8 +218,8 @@ class TestParseSingleOffer:
                 "nameString": "No Description",
                 "endsOnString": "2026-03-01",
                 "clippedVariant": "false",
-                "detailsFormattedAttributesString": {"sections": []}
-            }
+                "detailsFormattedAttributesString": {"sections": []},
+            },
         }
 
         offer = client._parse_single_offer(raw_offer)
@@ -262,10 +258,8 @@ class TestParseOffers:
                                 "nameString": "Offer 1",
                                 "endsOnString": "2026-03-01",
                                 "clippedVariant": "false",
-                                "detailsFormattedAttributesString": {
-                                    "sections": [{"text": "desc1"}]
-                                }
-                            }
+                                "detailsFormattedAttributesString": {"sections": [{"text": "desc1"}]},
+                            },
                         },
                         {
                             "id": "2",
@@ -276,11 +270,9 @@ class TestParseOffers:
                                 "nameString": "Offer 2",
                                 "endsOnString": "2026-03-15",
                                 "clippedVariant": "true",
-                                "detailsFormattedAttributesString": {
-                                    "sections": [{"text": "desc2"}]
-                                }
-                            }
-                        }
+                                "detailsFormattedAttributesString": {"sections": [{"text": "desc2"}]},
+                            },
+                        },
                     ]
                 }
             }
@@ -309,12 +301,10 @@ class TestParseOffers:
                                 "nameString": "Valid Offer",
                                 "endsOnString": "2026-03-01",
                                 "clippedVariant": "false",
-                                "detailsFormattedAttributesString": {
-                                    "sections": [{"text": "desc"}]
-                                }
-                            }
+                                "detailsFormattedAttributesString": {"sections": [{"text": "desc"}]},
+                            },
                         },
-                        {"invalid": "offer"}
+                        {"invalid": "offer"},
                     ]
                 }
             }
@@ -329,13 +319,7 @@ class TestParseOffers:
 
     def test_parse_offers_with_empty_response(self, client: SproutsClient) -> None:
         """Should handle empty offers list."""
-        graphql_response: dict = {
-            "data": {
-                "userOffersV2": {
-                    "offers": []
-                }
-            }
-        }
+        graphql_response: dict = {"data": {"userOffersV2": {"offers": []}}}
 
         offers = client._parse_offers(graphql_response)
 
@@ -348,13 +332,7 @@ class TestGetOffers:
 
     def test_get_offers_makes_correct_graphql_call(self, client: SproutsClient) -> None:
         """get_offers should call GraphQL with correct parameters."""
-        mock_data: dict = {
-            "data": {
-                "userOffersV2": {
-                    "offers": []
-                }
-            }
-        }
+        mock_data: dict = {"data": {"userOffersV2": {"offers": []}}}
 
         with patch.object(client, "_graphql_get", return_value=mock_data) as mock_graphql:
             client.get_offers(limit=100)
@@ -383,10 +361,8 @@ class TestGetOffers:
                                 "nameString": "Test Offer",
                                 "endsOnString": "2026-03-01",
                                 "clippedVariant": "false",
-                                "detailsFormattedAttributesString": {
-                                    "sections": [{"text": "description"}]
-                                }
-                            }
+                                "detailsFormattedAttributesString": {"sections": [{"text": "description"}]},
+                            },
                         }
                     ]
                 }
@@ -404,17 +380,9 @@ class TestGetOffers:
 class TestGetAvailableOffer:
     """Test fetching detailed offer information."""
 
-    def test_get_available_offer_makes_correct_call(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_get_available_offer_makes_correct_call(self, client: SproutsClient, sample_offer: Offer) -> None:
         """_get_available_offer should call GraphQL with correct parameters."""
-        mock_data = {
-            "data": {
-                "getAvailableOffer": {
-                    "items": [{"legacyId": "item_123"}]
-                }
-            }
-        }
+        mock_data = {"data": {"getAvailableOffer": {"items": [{"legacyId": "item_123"}]}}}
 
         with patch.object(client, "_graphql_get", return_value=mock_data) as mock_graphql:
             client._get_available_offer(sample_offer)
@@ -429,17 +397,9 @@ class TestGetAvailableOffer:
             assert variables["zoneId"] == "981"
             assert variables["postalCode"] == "95126"
 
-    def test_get_available_offer_returns_data(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_get_available_offer_returns_data(self, client: SproutsClient, sample_offer: Offer) -> None:
         """_get_available_offer should return offer data."""
-        mock_data = {
-            "data": {
-                "getAvailableOffer": {
-                    "items": [{"legacyId": "item_123"}]
-                }
-            }
-        }
+        mock_data = {"data": {"getAvailableOffer": {"items": [{"legacyId": "item_123"}]}}}
 
         with patch.object(client, "_graphql_get", return_value=mock_data):
             result = client._get_available_offer(sample_offer)
@@ -447,9 +407,7 @@ class TestGetAvailableOffer:
             assert result is not None
             assert result["items"][0]["legacyId"] == "item_123"
 
-    def test_get_available_offer_returns_none_when_not_found(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_get_available_offer_returns_none_when_not_found(self, client: SproutsClient, sample_offer: Offer) -> None:
         """_get_available_offer should return None when offer not found."""
         mock_data = {"data": {"getAvailableOffer": None}}
 
@@ -458,9 +416,7 @@ class TestGetAvailableOffer:
 
             assert result is None
 
-    def test_get_available_offer_returns_none_on_error(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_get_available_offer_returns_none_on_error(self, client: SproutsClient, sample_offer: Offer) -> None:
         """_get_available_offer should return None on exception."""
         with patch.object(client, "_graphql_get", side_effect=RuntimeError("API error")):
             result = client._get_available_offer(sample_offer)
@@ -472,9 +428,7 @@ class TestGetAvailableOffer:
 class TestClipCoupon:
     """Test coupon clipping functionality."""
 
-    def test_clip_coupon_returns_true_if_already_clipped(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_clip_coupon_returns_true_if_already_clipped(self, client: SproutsClient, sample_offer: Offer) -> None:
         """clip_coupon should return True without API call if already clipped."""
         sample_offer.is_clipped = True
 
@@ -482,20 +436,12 @@ class TestClipCoupon:
 
         assert result is True
 
-    def test_clip_coupon_gets_offer_details_first(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_clip_coupon_gets_offer_details_first(self, client: SproutsClient, sample_offer: Offer) -> None:
         """clip_coupon should fetch offer details before clipping."""
-        mock_offer_data = {
-            "items": [{"legacyId": "item_123"}]
-        }
-        mock_clip_data = {
-            "data": {"clipCouponV2": {"success": True}}
-        }
+        mock_offer_data = {"items": [{"legacyId": "item_123"}]}
+        mock_clip_data = {"data": {"clipCouponV2": {"success": True}}}
 
-        with patch.object(
-            client, "_get_available_offer", return_value=mock_offer_data
-        ) as mock_get_offer:
+        with patch.object(client, "_get_available_offer", return_value=mock_offer_data) as mock_get_offer:
             with patch.object(client, "_graphql_get", return_value=mock_clip_data):
                 result = client.clip_coupon(sample_offer)
 
@@ -512,9 +458,7 @@ class TestClipCoupon:
 
             assert result is False
 
-    def test_clip_coupon_returns_false_when_no_items(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_clip_coupon_returns_false_when_no_items(self, client: SproutsClient, sample_offer: Offer) -> None:
         """clip_coupon should return False if offer has no items."""
         mock_offer_data: dict = {"items": []}
 
@@ -523,9 +467,7 @@ class TestClipCoupon:
 
             assert result is False
 
-    def test_clip_coupon_returns_false_when_no_legacy_id(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_clip_coupon_returns_false_when_no_legacy_id(self, client: SproutsClient, sample_offer: Offer) -> None:
         """clip_coupon should return False if item has no legacyId."""
         mock_offer_data = {"items": [{"otherField": "value"}]}
 
@@ -534,9 +476,7 @@ class TestClipCoupon:
 
             assert result is False
 
-    def test_clip_coupon_makes_correct_clip_call(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_clip_coupon_makes_correct_clip_call(self, client: SproutsClient, sample_offer: Offer) -> None:
         """clip_coupon should call ClipCoupon with correct parameters."""
         mock_offer_data = {"items": [{"legacyId": "item_123"}]}
         mock_clip_data = {"data": {"clipCouponV2": {"success": True}}}
@@ -557,9 +497,7 @@ class TestClipCoupon:
                 assert variables["trackingParams"]["sourceType"] == "shop_content_page"
                 assert result is True
 
-    def test_clip_coupon_returns_false_when_clip_fails(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_clip_coupon_returns_false_when_clip_fails(self, client: SproutsClient, sample_offer: Offer) -> None:
         """clip_coupon should return False if clipping fails."""
         mock_offer_data = {"items": [{"legacyId": "item_123"}]}
         mock_clip_data = {"data": {"clipCouponV2": None}}
@@ -570,9 +508,7 @@ class TestClipCoupon:
 
                 assert result is False
 
-    def test_clip_coupon_returns_false_on_exception(
-        self, client: SproutsClient, sample_offer: Offer
-    ) -> None:
+    def test_clip_coupon_returns_false_on_exception(self, client: SproutsClient, sample_offer: Offer) -> None:
         """clip_coupon should return False if GraphQL call raises exception."""
         mock_offer_data = {"items": [{"legacyId": "item_123"}]}
 
