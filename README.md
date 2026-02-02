@@ -18,7 +18,7 @@ SPROUTS_EMAIL_RECIPIENT=your.email@example.com
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your@gmail.com
-SMTP_PASSWORD=your-16-char-app-password
+SMTP_PASSWORD=your-16-char-app-password  # NOT YOUR GMAIL PASSWORD!
 
 # Optional: Schedule (default: daily at midnight UTC)
 CRON_SCHEDULE=0 0 * * *
@@ -38,7 +38,7 @@ docker compose logs -f
 tail -f logs/cron.log
 ```
 
-**Gmail App Password:** Get one at https://myaccount.google.com/apppasswords
+**Gmail App Password:** These are distinct 16 character codes for using a Gmail account, do not give your full account password! Get one at https://myaccount.google.com/apppasswords
 
 ## Installation from Source
 
