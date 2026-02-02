@@ -58,7 +58,7 @@ SPROUTS_EMAIL_RECIPIENT=your.email@example.com
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your@gmail.com
-SMTP_PASSWORD=your-app-password-here
+SMTP_PASSWORD=your-app-password-here  # NOT YOUR GMAIL PASSWORD!
 ```
 
 **Important for Gmail:** You must use an [App Password](https://myaccount.google.com/apppasswords), not your regular Gmail password. This is a 16-character password that Google generates specifically for applications.
