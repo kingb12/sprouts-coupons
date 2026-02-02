@@ -35,7 +35,7 @@ jobs:
       run: ruff check .
 
     - name: Run mypy
-      run: mypy --install-typesk src/sprouts_coupons
+      run: mypy --install-types src/sprouts_coupons
 
   test:
     name: Unit Tests
