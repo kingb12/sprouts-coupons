@@ -23,8 +23,9 @@ Clone the repository and install with using [uv](https://docs.astral.sh/uv/) (re
 ```console
 git clone https://github.com/kingb12/sprouts-coupons.git
 cd sprouts-coupons
+uv venv
 uv pip install -e .
-```
+```k
 
 ## Usage
 
