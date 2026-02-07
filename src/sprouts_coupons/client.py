@@ -192,16 +192,18 @@ class SproutsClient:
         # Extract itemId from items array - use legacyId which is the numeric ID
         items = offer_data.get("items", [])
         if not items:
-            logger.error(f"No items in offer data for {offer.name}")
+            # Some offers (e.g., manufacturer coupons) don't have specific items
+            # Use default itemId "000000000001" as fallback
+            logger.warning(f"No items in offer data for {offer.name}, using default itemId")
             logger.debug(f"Offer data keys: {offer_data.keys()}")
-            return False
-
-        # The legacyId is the numeric item ID used for clipping
-        item_id = items[0].get("legacyId")
-        if not item_id:
-            logger.error(f"Could not find legacyId in items for {offer.name}")
-            logger.debug(f"First item keys: {items[0].keys()}")
-            return False
+            item_id = "000000000001"
+        else:
+            # The legacyId is the numeric item ID used for clipping
+            item_id = items[0].get("legacyId")
+            if not item_id:
+                logger.error(f"Could not find legacyId in items for {offer.name}")
+                logger.debug(f"First item keys: {items[0].keys()}")
+                return False
 
         # Step 2: Clip the coupon
         logger.info(f"Clipping coupon: {offer.name} (itemId={item_id})")
